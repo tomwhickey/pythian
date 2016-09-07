@@ -1,0 +1,55 @@
+---
+#
+# File: playbook.yml
+#
+# Desc: Ansible playbook called from Vagrantfile to update apt cache and install apache2, mysql, php, and wordpress.
+#	Also, Copies checkip.sh script to vagrant vm and executes it.
+#
+- hosts: all
+  become: yes
+  tasks:
+
+    #
+    #  Update apt cache and install apache2, mysql, php, and wordpress
+    #
+    - name: update apt cache
+      apt: update_cache=yes
+
+    - name: install apache2
+      apt: name=apache2 state=present
+
+    - name: install mysql
+      apt: name=mysql-server state=present
+
+    - name: install php
+      apt: name=php5 state=present
+
+    - name: install wordpress
+      apt: name=wordpress state=present
+
+
+    #
+    #  Configure Wordpress
+    #
+    - name: create symlink from /usr/share/wordpress to /var/www/html/wordpress
+      file: src=/usr/share/wordpress dest=/var/www/html/wordpress owner=www-data group=www-data state=link
+
+    - name: unzip wordpress setup-mysql.gz file
+      command: gzip -d /usr/share/doc/wordpress/examples/setup-mysql.gz creates=/usr/share/doc/wordpress/examples/setup-mysql
+
+    - name: run wordpress setup-mysql script
+      command: bash /usr/share/doc/wordpress/examples/setup-mysql -n wordpress localhost creates=/var/lib/mysql/wordpress
+
+    - name: change ownership to www-data:www-data recursively on wordpress home for automatic updates
+      file: path=/usr/share/wordpress state=directory recurse=yes owner=www-data group=www-data
+
+
+    #
+    #  Copy checkip.sh script to guest and execute
+    #
+    - name: Transfer checkip.sh bash script to /home/vagrant
+      copy: src=checkip.sh dest=/home/vagrant owner=vagrant group=vagrant mode=0744 backup=yes
+
+    - name: Execute checkip.sh script
+      command: bash /home/vagrant/checkip.sh
+
