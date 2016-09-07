@@ -3,7 +3,7 @@
 # File: playbook.yml
 #
 # Desc: Ansible playbook called from Vagrantfile to update apt cache and install apache2, mysql, php, and wordpress.
-#	Also, Copies checkip.sh script to vagrant vm and executes it.
+#	Also, transfers checkip.sh script to vagrant vm and executes it.
 #
 - hosts: all
   become: yes
